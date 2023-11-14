@@ -3,8 +3,8 @@
 
 const xml = `<Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
 <Control>
+<constructor>constructor</constructor>
 <then>then</then>
-<isPrototypeOf>isPrototypeOf</isPrototypeOf>
 <hasOwnProperty>hasOwnProperty</hasOwnProperty>
 <Title>震度速報</Title>
 <DateTime>2023-11-11T13:04:12Z</DateTime>
@@ -64,7 +64,9 @@ console.log(xmlElement.Report.Body.Intensity.Observation.CodeDefine.Type[0].$att
 console.log(xmlElement.Report.Body.Intensity.Observation.CodeDefine.Type[1].$attributes()[0].$text());
 console.log(xmlElement.$asXML());
 console.log(xmlElement.Report.Control.$asXML());
-
+console.log(xmlElement.Report.Control.then);
+console.log(xmlElement.Report.Control.constructor);
+console.log(xmlElement.Report.Control.hasOwnProperty instanceof SimpleXmlElementNode);
 
 // 既定の名前空間を使用している場合
 // （タグ名に明示的に名前空間を指定せず

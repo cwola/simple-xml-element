@@ -1,6 +1,63 @@
 ((_g) => {
 
     /**
+     * loilo/magic-methods.js - PHP Magic Methods in JavaScript
+     * @link https://gist.github.com/loilo/4d385d64e2b8552dcc12a0f5126b6df8
+     * @license https://gist.github.com/loilo/3860e53e4aa4010d36a4c08a3da67419
+     */
+    function magicMethods (clazz) {
+        const classHandler = Object.create(null);
+
+        // Trap for class instantiation
+        classHandler.construct = (target, args, receiver) => {
+            // Wrapped class instance
+            const instance = Reflect.construct(target, args, receiver);
+
+            // Instance traps
+            const instanceHandler = Object.create(null);
+    
+            // $__get()
+            // Catches "instance.property"
+            const get = Object.getOwnPropertyDescriptor(clazz.prototype, '$__get')
+            if (get) {
+                instanceHandler.get = (target, name, receiver) => {
+                    if (name.substring(0, 1) === '$') {
+                        return Reflect.get(target, name, receiver);
+                    } else {
+                        return get.value.call(target, name);
+                    }
+                }
+            }
+        
+            // $__set()
+            // Catches "instance.property = ..."
+            const set = Object.getOwnPropertyDescriptor(clazz.prototype, '$__set')
+            if (set) {
+                instanceHandler.set = (target, name, value, receiver) => {
+                    if (Object.hasOwn(target, name)) {
+                        return Reflect.set(target, name, value, receiver);
+                    } else {
+                        return target.$__set.call(target, name, value);
+                    }
+                }
+            }
+        
+            // $__unset()
+            // Catches "delete instance.property"
+            const unset = Object.getOwnPropertyDescriptor(clazz.prototype, '$__unset')
+            if (unset) {
+                instanceHandler.deleteProperty = (target, name) => {
+                    return unset.value.call(target, name);
+                }
+            }
+
+            return new Proxy(instance, instanceHandler);
+        }
+
+        return new Proxy(clazz, classHandler)
+    }
+
+    /**
      * typeof value === 'string' && value !== ''
      *
      * @param {any} value -
@@ -62,7 +119,7 @@
         const nodes = [];
         for (let i = 0, len = elements.length; i < len; i++) {
             const element = elements[i];
-            const node = SimpleXmlElementNode.create(element, obj.$documentIndexMap, obj.$namespaces);
+            const node = createSimpleXmlElementNode(element, obj.$documentIndexMap, obj.$namespaces);
             nodes[nodes.length] = node;
 
             if (obj.$nodes[element.localName] && Object.hasOwn(obj.$nodes, element.localName)) {
@@ -92,7 +149,13 @@
         if (!(data instanceof XMLDocument) || data.childElementCount !== 1) {
             throw new Error('data is not xml string.');
         }
-        return SimpleXmlElementNode.create(data, new WeakMap, new Map);
+        return createSimpleXmlElementNode(data, new WeakMap, new Map);
+    }
+
+    function createSimpleXmlElementNode(elm, documentIndexMap, namespaces) {
+        const simpleXmlElementNode = new SimpleXmlElementNode(elm, documentIndexMap, namespaces);
+        simpleXmlElementNode.$init();
+        return simpleXmlElementNode;
     }
 
     class SimpleXmlElement {
@@ -108,42 +171,33 @@
         }
     }
 
-    class SimpleXmlElementNode extends SimpleXmlElement {
+    const READY_STATE = {
+        PENDING: 'pending',
+        INITIALIZE: 'initialize',
+        COMPLETE: 'complete'
+    };
+    function check(simpleXmlElementNode) {
+        if (simpleXmlElementNode.$readyState !== READY_STATE.COMPLETE) {
+            throw new Error('This instance has not yet been initialized.');
+        }
+    }
+    const SimpleXmlElementNode = magicMethods(class SimpleXmlElementNode extends SimpleXmlElement {
         $nodes;
         $documentIndexMap;
         $namespaces;
+        $readyState = READY_STATE.PENDING;
 
-        /**
-         * @static
-         *
-         * @param {Element} elm -
-         * @param {WeakMap} documentIndexMap -
-         * @param {Map} namespaces -
-         *
-         * @return {SimpleXmlElementNode}
-         */
-        static create(elm, documentIndexMap, namespaces) {
-            return new Proxy(new SimpleXmlElementNode(elm, documentIndexMap, namespaces), {
-                get(target, prop, receiver) {
-                    if (prop.substring(0, 1) === '$') {
-                        return Reflect.get(target, prop, receiver);
-                    }
-                    return target.$nodes[prop];
-                },
-                set(target, prop, value, receiver) {
-                    if (prop.substring(0, 1) === '$') {
-                        return Reflect.set(target, prop, value, receiver);
-                    }
-                    throw new SyntaxError('TREE cannot be added directly. Use $addChild().');
-                },
-                deleteProperty(target, prop) {
-                    if (prop.substring(0, 1) === '$') {
-                        return false;
-                    }
-                    target.$nodes[prop].$remove();
-                    return true;
-                }
-            });
+        $__get(name) {
+            return this.$nodes[name];
+        }
+
+        $__set(name, value) {
+            throw new SyntaxError('TREE cannot be added directly. Use $addChild().');
+        }
+
+        $__unset(name) {
+            this.$nodes[name].$remove();
+            return true;
         }
 
         /**
@@ -155,17 +209,30 @@
          */
         constructor(elm, documentIndexMap, namespaces) {
             super(elm);
-            if (documentIndexMap.has(elm)) {
-                throw new Error('Only one element on document allowed.');
-            }
             this.$nodes = {};
             this.$documentIndexMap = documentIndexMap;
-            documentIndexMap.set(elm, this);
             this.$namespaces = namespaces;
+        }
+
+        /**
+         * Initialize.
+         *
+         * @return {void}
+         */
+        $init() {
+            const elm = this.$elm;
+            if (this.$readyState !== READY_STATE.PENDING) {
+                throw new Error('This instance has already been initialized.');
+            } else if (this.$documentIndexMap.has(elm)) {
+                throw new Error('Only one element on document allowed.');
+            }
+            this.$readyState = READY_STATE.INITIALIZE;
+            this.$documentIndexMap.set(elm, this);
             if (isValidString(elm.prefix)) {
-                namespaces.set(elm.prefix, elm.namespaceURI);
+                this.$namespaces.set(elm.prefix, elm.namespaceURI);
             }
             appendElements(this, elm.children);
+            this.$readyState = READY_STATE.COMPLETE;
         }
 
         /**
@@ -178,6 +245,7 @@
          * @return {this}
          */
         $addAttribute(qualifiedName, value, namespace = null) {
+            check(this);
             if (isValidString(namespace)) {
                 this.$namespaces.set(qualifiedName.split(':')[0], namespace);
                 this.$elm.setAttributeNS(namespace, qualifiedName, value);
@@ -197,6 +265,7 @@
          * @return {SimpleXmlElementNode}
          */
         $addChild(qualifiedName, value = null, namespace = null) {
+            check(this);
             let element = null;
             if (isValidString(namespace)) {
                 element = XMLDocument.createElementNS(namespace, qualifiedName);
@@ -219,6 +288,7 @@
          * @return {this}
          */
         $addNS(prefix, namespace) {
+            check(this);
             this.$namespaces.set(prefix, namespace);
             return this;
         }
@@ -229,6 +299,7 @@
          * @return {string}
          */
         $asXML() {
+            check(this);
             return (new XMLSerializer()).serializeToString(this.$elm);
         }
 
@@ -241,6 +312,7 @@
          * @return {SimpleXmlElementAttribute[]}
          */
         $attributes(namespaceOrPrefix = null, isPrefix = false) {
+            check(this);
             const simpleXmlElementAttributes = [];
             const filterNamespace = isValidString(namespaceOrPrefix);
             const attributes = this.$elm.attributes;
@@ -269,6 +341,7 @@
          * @return {SimpleXmlElementNode[]}
          */
         $children(namespaceOrPrefix = null, isPrefix = false) {
+            check(this);
             if (!this.$hasChildren()) {
                 return [];
             }
@@ -302,6 +375,7 @@
          * @return {number}
          */
         $count() {
+            check(this);
             return this.$elm.childElementCount;
         }
 
@@ -311,6 +385,7 @@
          * @return {string}
          */
         $getName() {
+            check(this);
             return this.$elm.tagName;
         }
 
@@ -322,6 +397,7 @@
          * @see https://developer.mozilla.org/en-US/docs/Web/XPath/Snippets
          */
         $getXPath() {
+            check(this);
             let xpath = '',
                 el = this.$elm,
                 xml = this.$elm.ownerDocument;
@@ -358,6 +434,7 @@
          * @return {boolean}
          */
         $hasChildren() {
+            check(this);
             return this.$elm.hasChildNodes();
         }
 
@@ -367,6 +444,7 @@
          * @return {SimpleXmlElementNode|SimpleXmlTextNode|null}
          */
         $parent() {
+            check(this);
             const parent = this.$elm.parentNode;
             return parent === null ? null : this.$documentIndexMap.get(parent);
         }
@@ -377,6 +455,7 @@
          * @return {void}
          */
         $remove() {
+            check(this);
             const parent = this.$parent();
             if (parent === null || parent instanceof SimpleXmlTextNode) {
                 throw new Error('this element is not deletable.');
@@ -392,6 +471,7 @@
          * @return {void}
          */
         $removeChild(child) {
+            check(this);
             const elm = child.$elm;
             this.$elm.removeChild(elm);
             this.$documentIndexMap.delete(elm);
@@ -406,6 +486,7 @@
          * @return {this}
          */
         $removeNS(prefix) {
+            check(this);
             this.$namespaces.delete(prefix);
             return this;
         }
@@ -416,6 +497,7 @@
          * @return {string}
          */
         $text() {
+            check(this);
             return this.$elm.innerHTML;
         }
 
@@ -428,6 +510,7 @@
          * @return {Array<SimpleXmlElementNode|SimpleXmlTextNode>|number|string|boolean}
          */
         $xpath(expression, nsResolver = null) {
+            check(this);
             let xmlDoc = this.$elm;
             if (!(xmlDoc instanceof XMLDocument)) {
                 xmlDoc = xmlDoc.ownerDocument;
@@ -474,7 +557,7 @@
             }
             return (simpleXmlElementNodes.length === 1 && simpleXmlElementNodes[0] instanceof Text) ? simpleXmlElementNodes[0].$text() : simpleXmlElementNodes;
         }
-    }
+    });
 
     class SimpleXmlTextNode extends SimpleXmlElement {
         /**
@@ -575,5 +658,20 @@
     }
 
     _g.loadSimpleXmlElement = loadSimpleXmlElement;
+    _g.SimpleXmlElement = new Proxy(SimpleXmlElement, {
+        construct(target, args, receiver) {
+            throw new TypeError('Illegal constructor.');
+        }
+    });
+    _g.SimpleXmlElementNode = new Proxy(SimpleXmlElementNode, {
+        construct(target, args, receiver) {
+            throw new TypeError('Illegal constructor.');
+        }
+    });
+    _g.SimpleXmlTextNode = new Proxy(SimpleXmlTextNode, {
+        construct(target, args, receiver) {
+            throw new TypeError('Illegal constructor.');
+        }
+    });
 
 })(window);
