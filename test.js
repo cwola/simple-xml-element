@@ -3,7 +3,8 @@
 
 const xml = `<Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
 <Control>
-<isPrototypeOf>isPrototypeOf</isPrototypeOf>
+<constructor>constructor</constructor>
+<then>then</then>
 <hasOwnProperty>hasOwnProperty</hasOwnProperty>
 <Title>震度速報</Title>
 <DateTime>2023-11-11T13:04:12Z</DateTime>
@@ -61,15 +62,20 @@ console.log(xmlElement.Report.Control.Title.$text());
 console.log(xmlElement.Report.Head.Headline.Information.Item.Kind.Name.$text() + ' ' + xmlElement.Report.Head.Headline.Information.Item.Areas.Area.Name.$text());
 console.log(xmlElement.Report.Body.Intensity.Observation.CodeDefine.Type[0].$attributes()[0].$text());
 console.log(xmlElement.Report.Body.Intensity.Observation.CodeDefine.Type[1].$attributes()[0].$text());
+console.log(xmlElement.$depth());  // 0
+console.log(xmlElement.Report.$depth());  // 1
+console.log(xmlElement.Report.Body.Intensity.Observation.$depth());  // 4
 console.log(xmlElement.$asXML());
 console.log(xmlElement.Report.Control.$asXML());
+console.log(xmlElement.Report.Control.then);
+console.log(xmlElement.Report.Control.constructor);
+console.log(xmlElement.Report.Control.hasOwnProperty instanceof SimpleXmlElementNode);
 
 
-// 既定の名前空間を使用している場合
-// （タグ名に明示的に名前空間を指定せず
+// 既定の名前空間を使用している場合（タグ名に明示的に名前空間を指定せず
 //   <Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
 //  のように、一括で名前空間を指定している場合）
-// は、addNSメソッドを使用して名前空間を設定する必要があります。
+// に$xpathメソッドを使用する場合は、$addNSメソッドを使用してあらかじめ名前空間を設定しておく必要があります。
 //
 xmlElement.$addNS('jmx', 'http://xml.kishou.go.jp/jmaxml1/')
         .$addNS('jmx_ib', 'http://xml.kishou.go.jp/jmaxml1/informationBasis1/')
@@ -77,7 +83,6 @@ xmlElement.$addNS('jmx', 'http://xml.kishou.go.jp/jmaxml1/')
         .$addNS('jmx_eb', 'http://xml.kishou.go.jp/jmaxml1/elementBasis1/');
 console.log(xmlElement.$xpath('/jmx:Report'));
 console.log(xmlElement.$xpath('/jmx:Report/jmx_b:Body/jmx_b:Intensity/jmx_b:Observation/jmx_b:CodeDefine/jmx_b:Type[@xpath=\'Pref/Code\']/text()'));
-console.log(xmlElement.$xpath('/jmx:Report/jmx_b:Body/jmx_b:Intensity/jmx_b:Observation/jmx_b:CodeDefine/jmx_b:Type[@xpath=\'Pref/Code\']')[0].$text());
 console.log(xmlElement.Report.Body.Intensity.Observation.$xpath('jmx_b:CodeDefine/jmx_b:Type'));
 console.log(xmlElement.Report.Body.Intensity.Observation.$xpath('/jmx_b:CodeDefine/jmx_b:Type'));
 console.log(xmlElement.Report.Body.Intensity.$xpath('//jmx_b:Type')[0].$text());
@@ -85,4 +90,8 @@ console.log(xmlElement.Report.Body.Intensity.$xpath('//jmx_b:Type')[0].$text());
 xmlElement.Report.Body.$remove();
 console.log(xmlElement.Report.$children());
 
+delete xmlElement.Report.Head.Headline;
+console.log(xmlElement.$asXML());
+// SyntaxError : TREE cannot be added directly. Use $addChild().
+xmlElement.Report.Head = '';
 })(window);
