@@ -27,7 +27,7 @@ const xmlString = `<Bookshelf>
     <Publishing>1939</Publishing>
 </Book>
 </Bookshelf>`;
-const xmlElement = await _g.loadSimpleXmlElement(xmlString);
+const xmlElement = await loadSimpleXmlElement(xmlString);
 
 
 xmlElement.Bookshelf.Book.forEach((book) => {
