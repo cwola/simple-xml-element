@@ -1,8 +1,3 @@
-
-# This repository is being created.
-
----
-
 # simple-xml-element
 
 JavaScript library, like PHP's SimpleXmlElement.
@@ -55,9 +50,15 @@ console.log(xmlElement.$xpath('/Bookshelf/Book[last()]')[0].$asXML());
 
 ## API
 
-- [Global](./doc/api/global.md)
+- [global](./doc/api/global.md)
+
+- [SimpleXmlElement](./doc/api/SimpleXmlElement.md)
+
+- [SimpleXmlElementAttribute](./doc/api/SimpleXmlElementAttribute.md)
 
 - [SimpleXmlElementNode](./doc/api/SimpleXmlElementNode.md)
+
+- [SimpleXmlTextNode](./doc/api/SimpleXmlTextNode.md)
 
 ## License
 

@@ -364,7 +364,7 @@
         </Foo>`
     );
 
-    xmlElement.Foo.$registerNS('baz', 'http://simple-xml-element.cwola.jp/baz');
+    xmlElement.$registerNS('baz', 'http://simple-xml-element.cwola.jp/baz');
     console.log(xmlElement.$xpath('/baz:Foo/baz:Bar/text()'));
     // Bar Text
     ```
@@ -503,6 +503,6 @@
     // Bar Text
 
     // is same ...
-    xmlElement.Foo.$registerNS('baz', 'http://simple-xml-element.cwola.jp/baz');
+    xmlElement.$registerNS('baz', 'http://simple-xml-element.cwola.jp/baz');
     console.log(xmlElement.$xpath('/baz:Foo/baz:Bar/text()'));
     ```

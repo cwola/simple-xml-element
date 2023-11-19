@@ -30,5 +30,5 @@
     );
 
     xmlElement instanceof SimpleXmlElementNode;
-    // TRUE
+    // true
     ```

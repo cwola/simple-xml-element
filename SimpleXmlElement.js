@@ -595,9 +595,9 @@
         }
 
         /**
-         * to string.
+         * Returns the nodeValue property of a TextNode.
          *
-         * @return {string}
+         * @return {string} Returns the nodeValue property of a TextNode.
          */
         $text() {
             return this.$elm.nodeValue;
@@ -605,7 +605,7 @@
     }
 
     class SimpleXmlElementAttribute {
-        attribute;
+        $attribute;
 
         /**
          * @constructor
@@ -613,69 +613,69 @@
          * @param {Attr} attribute -
          */
         constructor(attribute) {
-            this.attribute = attribute;
+            this.$attribute = attribute;
         }
 
         /**
-         * Get LocalName.
+         * Returns the localName property of an Attribute.
          *
-         * @return {string}
+         * @return {string} Returns the localName property of an Attribute.
          */
         $localName() {
-            return this.attribute.localName;
+            return this.$attribute.localName;
         }
 
         /**
-         * Get Name.
+         * Returns the name property of an Attribute.
          *
-         * @return {string}
+         * @return {string} Returns the name property of an Attribute.
          */
         $name() {
-            return this.attribute.name;
+            return this.$attribute.name;
         }
 
         /**
-         * Get NamespaceURI.
+         * Returns the namespaceURI property of an Attribute.
          *
-         * @return {string|null}
+         * @return {string|null} Returns the namespaceURI property of an Attribute.
          */
         $namespaceURI() {
-            return this.attribute.namespaceURI;
+            return this.$attribute.namespaceURI;
         }
 
         /**
-         * Get prefix.
+         * Returns the prefix property of an Attribute.
          *
-         * @return {string|null}
+         * @return {string|null} Returns the prefix property of an Attribute.
          */
         $prefix() {
-            return this.attribute.prefix;
+            return this.$attribute.prefix;
         }
 
         /**
-         * Get value.
+         * Returns the value property of an Attribute.
          *
-         * @return {string}
+         * @return {string} Returns the value property of an Attribute.
          */
         $getValue() {
-            return this.attribute.value;
+            return this.$attribute.value;
         }
 
         /**
-         * Set value.
+         * Sets the value property of an Attribute.
          *
-         * @param {string} value -
+         * @param {string} value - Attribute value.
          *
-         * @return {void}
+         * @return {void} No value is returned.
          */
         $setValue(value) {
-            this.attribute.value = value;
+            this.$attribute.value = value;
         }
 
         /**
-         * to string.
+         * Alias of $getValue().
          *
-         * @return {string}
+         * @return {string} Returns the value property of an Attribute.
          */
         $text() {
             return this.$getValue();
