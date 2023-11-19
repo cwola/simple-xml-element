@@ -12,7 +12,7 @@
   ***
   - Description
 
-    Adds an attribute to the SimpleXmlElementNode element.
+    Adds an attribute to the element.
 
   - Arguments
 
@@ -47,7 +47,7 @@
   ***
   - Description
 
-    Adds a child element to the SimpleXmlElementNode element.
+    Adds a child element to the element.
 
   - Arguments
 
@@ -202,6 +202,68 @@
     console.log(xmlElement.Foo.$countChildren());
     // 3
     ```
+
+- **$depth**
+  ***
+  - Description
+
+    Returns the depth of an element.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | number | Returns the depth of an element. XMLDocument is 0, Root element is 1 ... |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>
+                <Baz>
+                    <Qux>qux</Qux>
+                </Baz>
+            </Bar>
+        </Foo>`
+    );
+
+    console.log(xmlElement.Foo.Bar.Baz.Qux.$depth());
+    // 4
+    ```
+
+- **$getXPath**
+  ***
+  - Description
+
+    Returns the XPath of an element.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | string | Returns the XPath of an element. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>
+                <Baz>
+                    <Qux>qux</Qux>
+                </Baz>
+            </Bar>
+        </Foo>`
+    );
+
+    console.log(
+      xmlElement.$xpath(xmlElement.Foo.Bar.Baz.Qux.$getXPath())[0] === xmlElement.Foo.Bar.Baz.Qux
+    );
+    // true
+    ```
+
+  - link
+
+    - [https://developer.mozilla.org/en-US/docs/Web/XPath/Snippets](https://developer.mozilla.org/en-US/docs/Web/XPath/Snippets)
 
 - **$registerNS**
   ***

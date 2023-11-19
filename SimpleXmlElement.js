@@ -238,7 +238,7 @@
         }
 
         /**
-         * Adds an attribute to the SimpleXmlElementNode element.
+         * Adds an attribute to the element.
          *
          * @param {string} qualifiedName - The name of the attribute to add.
          * @param {string} value - The value of the attribute.
@@ -258,7 +258,7 @@
         }
 
         /**
-         * Adds a child element to the SimpleXmlElementNode element.
+         * Adds a child element to the element.
          *
          * @param {string} qualifiedName - The name of the child element to add.
          * @param {string?} value - If specified, the value of the child element.
@@ -372,9 +372,9 @@
         }
 
         /**
-         * Get depth.
+         * Returns the depth of an element.
          *
-         * @return {number} - 0 is document. 1 is root element.
+         * @return {number} Returns the depth of an element. XMLDocument is 0, Root element is 1 ...
          */
         $depth() {
             check(this);
@@ -388,9 +388,9 @@
         }
 
         /**
-         * Get XPath.
+         * Returns the XPath of an element.
          *
-         * @return {string}
+         * @return {string} Returns the XPath of an element.
          *
          * @see https://developer.mozilla.org/en-US/docs/Web/XPath/Snippets
          */
@@ -401,7 +401,7 @@
                 xml = this.$elm.ownerDocument;
             let pos,
                 tempitem2;
-          
+
             while (el !== xml.documentElement) {
                 pos = 0;
                 tempitem2 = el;
@@ -412,16 +412,15 @@
                     }
                     tempitem2 = tempitem2.previousSibling;
                 }
-          
-                xpath = `*[name()='${el.nodeName}' and namespace-uri()='${
-                    el.namespaceURI ?? ''
-                }'][${pos}]/${xpath}`;
-          
+
+                xpath = `*[name()='${el.nodeName}'`
+                        + (el.namespaceURI ? ` and namespace-uri()='${el.namespaceURI}'` : '')
+                        + `][${pos}]/${xpath}`;
                 el = el.parentNode;
             }
-            xpath = `/*[name()='${xml.documentElement.nodeName}' and namespace-uri()='${
-                el.namespaceURI ?? ''
-            }']/${xpath}`;
+            xpath = `*[name()='${xml.documentElement.nodeName}'`
+                        + (el.namespaceURI ? ` and namespace-uri()='${el.namespaceURI}'` : '')
+                        + `]/${xpath}`;
             xpath = xpath.replace(/\/$/, '');
             return xpath;
         }

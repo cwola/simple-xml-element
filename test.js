@@ -1,5 +1,18 @@
 
 (async (_g) => {
+    const elm = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>
+                <Baz>
+                    <Qux>qux</Qux>
+                </Baz>
+            </Bar>
+        </Foo>`
+    );
+
+    console.log(
+        elm.$xpath(elm.Foo.Bar.Baz.Qux.$getXPath())[0] === elm.Foo.Bar.Baz.Qux
+    );
 const xml = `<Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
 <Control>
 <constructor>constructor</constructor>
@@ -70,6 +83,7 @@ console.log(xmlElement.Report.Control.then);
 console.log(xmlElement.Report.Control.constructor);
 console.log(xmlElement.Report.Control.hasOwnProperty instanceof SimpleXmlElementNode);
 
+console.log('=== XPATH TEST ===');
 
 // 既定の名前空間を使用している場合（タグ名に明示的に名前空間を指定せず
 //   <Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
