@@ -1,18 +1,5 @@
 
 (async (_g) => {
-    const elm = await loadSimpleXmlElement(
-        `<Foo>
-            <Bar>
-                <Baz>
-                    <Qux>qux</Qux>
-                </Baz>
-            </Bar>
-        </Foo>`
-    );
-
-    console.log(
-        elm.$xpath(elm.Foo.Bar.Baz.Qux.$getXPath())[0] === elm.Foo.Bar.Baz.Qux
-    );
 const xml = `<Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
 <Control>
 <constructor>constructor</constructor>
@@ -88,7 +75,8 @@ console.log('=== XPATH TEST ===');
 // 既定の名前空間を使用している場合（タグ名に明示的に名前空間を指定せず
 //   <Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
 //  のように、一括で名前空間を指定している場合）
-// に$xpathメソッドを使用する場合は、$registerNSメソッドを使用してあらかじめ名前空間を設定しておく必要があります。
+// に$xpathメソッドを使用する場合は、$registerNSメソッドを使用してあらかじめ名前空間を設定しておくと便利です。
+// (設定していない場合は、$xpathメソッドの第二引数を使用して独自に名前空間の解決を行う必要があります)
 //
 xmlElement.$registerNS('jmx', 'http://xml.kishou.go.jp/jmaxml1/')
         .$registerNS('jmx_ib', 'http://xml.kishou.go.jp/jmaxml1/informationBasis1/')

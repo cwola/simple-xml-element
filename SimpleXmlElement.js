@@ -426,19 +426,20 @@
         }
 
         /**
-         * Has children.
+         * Checks whether the current element has sub elements.  
+         * Note that TextNode does not count as a child element.
          *
-         * @return {boolean}
+         * @return {boolean} true if the current element has sub-elements, otherwise false.
          */
         $hasChildren() {
             check(this);
-            return this.$elm.hasChildNodes();
+            return Object.keys(this.$nodes).length > 0;
         }
 
         /**
-         * Get name.
+         * Gets the tagName of the element.
          *
-         * @return {string}
+         * @return {string} Returns as a string the name of the XML tag referenced by the SimpleXMLElementNode instance.
          */
         $name() {
             check(this);
@@ -446,9 +447,9 @@
         }
 
         /**
-         * Get parent.
+         * Gets the parent element of this element.
          *
-         * @return {SimpleXmlElementNode|SimpleXmlTextNode|null}
+         * @return {SimpleXmlElementNode|null} Returns the parent element of this element.
          */
         $parent() {
             check(this);
@@ -460,8 +461,8 @@
          * Registers a namespace to be passed to the nsResolver closure used in the $xpath method.  
          * Note that namespaces are not set for XML Nodes.
          *
-         * @param {string} prefix - The prefix of the namespace to add.
-         * @param {string} namespace - The namespace URI of the namespace to add.
+         * @param {string} prefix - The prefix of the namespace to register.
+         * @param {string} namespace - The namespace URI of the namespace to register.
          *
          * @return {this}
          */
@@ -472,9 +473,9 @@
         }
 
         /**
-         * Remove.
+         * Remove this element from the parent element.
          *
-         * @return {void}
+         * @return {void} No value is returned.
          */
         $remove() {
             check(this);
@@ -486,11 +487,11 @@
         }
 
         /**
-         * Remove child.
+         * Remove child element from this element.
          *
-         * @param {SimpleXmlElementNode|SimpleXmlTextNode} child -
+         * @param {SimpleXmlElementNode} child - A SimpleXmlElementNode that is the child element to be removed from this element.
          *
-         * @return {void}
+         * @return {void} No value is returned.
          */
         $removeChild(child) {
             check(this);
@@ -501,9 +502,9 @@
         }
 
         /**
-         * to string.
+         * Returns the innerHTML property of an element.
          *
-         * @return {string}
+         * @return {string} Returns the innerHTML property of an element.
          */
         $text() {
             check(this);
@@ -511,9 +512,10 @@
         }
 
         /**
-         * Unregister namespace.
+         * Unregisters a namespace to be passed to the nsResolver closure used in the $xpath method.  
+         * Note that namespaces are not unset for XML Nodes.
          *
-         * @param {string} prefix -
+         * @param {string} prefix - The prefix of the namespace to unregister.
          *
          * @return {this}
          */
@@ -524,12 +526,12 @@
         }
 
         /**
-         * xpath.
+         * Runs XPath query on XML data.
          *
-         * @param {string} expression -
-         * @param {Function?} nsResolver - default : null
+         * @param {string} expression - An XPath path.
+         * @param {Function?} nsResolver - A function that will be passed any namespace prefixes and should return a string representing the namespace URI associated with that prefix.
          *
-         * @return {Array<SimpleXmlElementNode|SimpleXmlTextNode>|number|string|boolean}
+         * @return {SimpleXmlElement[]|number|string|boolean} Returns an array of SimpleXmlElement instances, number, string or boolean.
          */
         $xpath(expression, nsResolver = null) {
             check(this);

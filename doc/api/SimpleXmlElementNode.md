@@ -1,7 +1,5 @@
 ### SimpleXmlElementNode
 
-@TODO overview
-
 #### Extends
 
 - [SimpleXmlElement](./SimpleXmlElement.md)
@@ -37,7 +35,7 @@
     );
 
     xmlElement.Foo.$addAttribute('baz', 'qux');
-    xmlElement.$asXML();
+    console.log(xmlElement.$asXML());
     // <Foo baz="qux">
     //     <Bar>Bar Text</Bar>
     // </Foo>
@@ -72,7 +70,7 @@
     );
 
     xmlElement.Foo.$addChild('Baz', 'qux');
-    xmlElement.$asXML();
+    console.log(xmlElement.$asXML());
     // <Foo>
     //     <Bar>Bar Text</Bar>
     //     <Baz>qux</Baz>
@@ -99,7 +97,7 @@
         </Foo>`
     );
 
-    xmlElement.$asXML();
+    console.log(xmlElement.$asXML());
     // <Foo>
     //     <Bar>Bar Text</Bar>
     // </Foo>
@@ -256,7 +254,7 @@
     );
 
     console.log(
-      xmlElement.$xpath(xmlElement.Foo.Bar.Baz.Qux.$getXPath())[0] === xmlElement.Foo.Bar.Baz.Qux
+        xmlElement.$xpath(xmlElement.Foo.Bar.Baz.Qux.$getXPath())[0] === xmlElement.Foo.Bar.Baz.Qux
     );
     // true
     ```
@@ -264,6 +262,79 @@
   - link
 
     - [https://developer.mozilla.org/en-US/docs/Web/XPath/Snippets](https://developer.mozilla.org/en-US/docs/Web/XPath/Snippets)
+
+- **$hasChildren**
+  ***
+  - Description
+
+    Checks whether the current element has sub elements.  
+    Note that TextNode does not count as a child element.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | boolean | true if the current element has sub-elements, otherwise false. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    console.log(xmlElement.Foo.Bar.$hasChildren());
+    // false
+    ```
+
+- **$name**
+  ***
+  - Description
+
+    Gets the tagName of the element.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | string | Returns as a string the name of the XML tag referenced by the SimpleXMLElementNode instance. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    console.log(xmlElement.Foo.Bar.$name());
+    // Bar
+    ```
+
+- **$parent**
+  ***
+  - Description
+
+    Gets the parent element of this element.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | SimpleXmlElementNode? | Returns the parent element of this element. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    console.log(xmlElement.Foo.Bar.$parent() === xmlElement.Foo);
+    // true
+    ```
 
 - **$registerNS**
   ***
@@ -276,8 +347,8 @@
 
     | Name | Type | Description |
     |---|:---:|---|
-    | prefix | string | The prefix of the namespace to add. |
-    | namespace | string | The namespace URI of the namespace to add. |
+    | prefix | string | The prefix of the namespace to register. |
+    | namespace | string | The namespace URI of the namespace to register. |
 
   - Return
 
@@ -294,7 +365,144 @@
     );
 
     xmlElement.Foo.$registerNS('baz', 'http://simple-xml-element.cwola.jp/baz');
-    xmlElement.$xpath('/baz:Foo/baz:Bar/text()');  // Bar Text
+    console.log(xmlElement.$xpath('/baz:Foo/baz:Bar/text()'));
+    // Bar Text
     ```
 
-- **@TODO**
+- **$remove**
+  ***
+  - Description
+
+    Remove this element from the parent element.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | void | No value is returned. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    xmlElement.Foo.Bar.$remove();
+    console.log(xmlElement.$asXML());
+    // <Foo>
+    // </Foo>
+    ```
+
+- **$removeChild**
+  ***
+  - Description
+
+    Remove child element from this element.
+
+  - Arguments
+
+    | Name | Type | Description |
+    |---|:---:|---|
+    | child | SimpleXmlElementNode | A SimpleXmlElementNode that is the child element to be removed from this element. |
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | void | No value is returned. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    xmlElement.Foo.$removeChild(xmlElement.Foo.Bar);
+    console.log(xmlElement.$asXML());
+    // <Foo>
+    // </Foo>
+    ```
+
+- **$text**
+  ***
+  - Description
+
+    Returns the innerHTML property of an element.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | string | Returns the innerHTML property of an element. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    console.log(xmlElement.Foo.Bar.$text());
+    // Bar Text
+    ```
+
+- **$unregisterNS**
+  ***
+  - Description
+
+    Unregisters a namespace to be passed to the nsResolver closure used in the $xpath method.  
+    Note that namespaces are not unset for XML Nodes.
+
+  - Arguments
+
+    | Name | Type | Description |
+    |---|:---:|---|
+    | prefix | string | The prefix of the namespace to unregister. |
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | SimpleXmlElementNode | this. |
+
+- **$xpath**
+  ***
+  - Description
+
+    Runs XPath query on XML data.
+
+  - Arguments
+
+    | Name | Type | Description |
+    |---|:---:|---|
+    | expression | string | An XPath path. |
+    | nsResolver | Function? | A function that will be passed any namespace prefixes and should return a string representing the namespace URI associated with that prefix. |
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | SimpleXmlElement[]|number|string|boolean | Returns an array of SimpleXmlElement instances, number, string or boolean. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo xmlns="http://simple-xml-element.cwola.jp/baz">
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    console.log(xmlElement.$xpath('/baz:Foo/baz:Bar/text()', (prefix) => {
+        return (prefix === 'baz' ? 'http://simple-xml-element.cwola.jp/baz' : null);
+    }));
+    // Bar Text
+
+    // is same ...
+    xmlElement.Foo.$registerNS('baz', 'http://simple-xml-element.cwola.jp/baz');
+    console.log(xmlElement.$xpath('/baz:Foo/baz:Bar/text()'));
+    ```
