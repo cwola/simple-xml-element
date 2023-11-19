@@ -28,7 +28,8 @@ const xmlString = `<Bookshelf>
 </Book>
 </Bookshelf>`;
 const xmlElement = await loadSimpleXmlElement(xmlString);
-
+// Load from Network.
+// const xmlElement = await loadSimpleXmlElement('https://www.w3schools.com/xml/note.xml', true);
 
 xmlElement.Bookshelf.Book.forEach((book) => {
     console.log(book.Name.$text() + ' (' + book.Author.$text() + ') - ' + book.Publishing.$text());

@@ -32,14 +32,14 @@
     ```
     const xmlElement = await loadSimpleXmlElement(
         `<Foo>
-            <Bar>Bar</Bar>
+            <Bar>Bar Text</Bar>
         </Foo>`
     );
 
     xmlElement.Foo.$addAttribute('baz', 'qux');
     xmlElement.$asXML();
     // <Foo baz="qux">
-    //     <Bar>Bar</Bar>
+    //     <Bar>Bar Text</Bar>
     // </Foo>
     ```
 
@@ -47,7 +47,7 @@
   ***
   - Description
 
-    Adds a child element to the XML node.
+    Adds a child element to the SimpleXmlElementNode element.
 
   - Arguments
 
@@ -67,16 +67,172 @@
     ```
     const xmlElement = await loadSimpleXmlElement(
         `<Foo>
-            <Bar>Bar</Bar>
+            <Bar>Bar Text</Bar>
         </Foo>`
     );
 
     xmlElement.Foo.$addChild('Baz', 'qux');
     xmlElement.$asXML();
     // <Foo>
-    //     <Bar>Bar</Bar>
+    //     <Bar>Bar Text</Bar>
     //     <Baz>qux</Baz>
     // </Foo>
+    ```
+
+- **$asXML**
+  ***
+  - Description
+
+    Return a XML string based on SimpleXmlElementNode element.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | string | XML string. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    xmlElement.$asXML();
+    // <Foo>
+    //     <Bar>Bar Text</Bar>
+    // </Foo>
+    ```
+
+- **$attributes**
+  ***
+  - Description
+
+    Returns the attributes and values defined within an xml tag.
+
+  - Arguments
+
+    | Name | Type | Description |
+    |---|:---:|---|
+    | namespaceOrPrefix | string? | An optional namespace for the retrieved attributes. |
+    | isPrefix | boolean? | If isPrefix is true, namespaceOrPrefix will be regarded as a prefix. If false, namespaceOrPrefix will be regarded as a namespace URL. |
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | SimpleXmlElementAttribute[] | Returns an array of SimpleXmlElementAttribute instances. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar id="2023-cwola" class="item" data-depth="1">Bar Text</Bar>
+        </Foo>`
+    );
+
+    xmlElement.Foo.Bar.$attributes().forEach((attr) => {
+        console.log(attr.$name() + ' => ' + attr.$getValue());
+    });
+    // id => 2023-cwola
+    // class => item
+    // data-depth => 1
+    ```
+
+- **$children**
+  ***
+  - Description
+
+    Returns the children of an element.
+
+  - Arguments
+
+    | Name | Type | Description |
+    |---|:---:|---|
+    | namespaceOrPrefix | string? | An optional namespace for the retrieved elements. |
+    | isPrefix | boolean? | If isPrefix is true, namespaceOrPrefix will be regarded as a prefix. If false, namespaceOrPrefix will be regarded as a namespace URL. |
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | SimpleXmlElementNode[] | Returns an array of SimpleXmlElementNode instances. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>Bar Text1</Bar>
+            <Bar>Bar Text2</Bar>
+            <Bar>Bar Text3</Bar>
+        </Foo>`
+    );
+
+    xmlElement.Foo.$children().forEach((child) => {
+        console.log(child.$text());
+    });
+    // Bar Text1
+    // Bar Text2
+    // Bar Text3
+    ```
+
+- **$countChildren**
+  ***
+  - Description
+
+    Counts the children of an element.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | number | Returns the number of elements of an element. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>Bar Text1</Bar>
+            <Bar>Bar Text2</Bar>
+            <Bar>Bar Text3</Bar>
+        </Foo>`
+    );
+
+    console.log(xmlElement.Foo.$countChildren());
+    // 3
+    ```
+
+- **$registerNS**
+  ***
+  - Description
+
+    Registers a namespace to be passed to the nsResolver closure used in the $xpath method.  
+    Note that namespaces are not set for XML Nodes.
+
+  - Arguments
+
+    | Name | Type | Description |
+    |---|:---:|---|
+    | prefix | string | The prefix of the namespace to add. |
+    | namespace | string | The namespace URI of the namespace to add. |
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | SimpleXmlElementNode | this. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo xmlns="http://simple-xml-element.cwola.jp/baz">
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    xmlElement.Foo.$registerNS('baz', 'http://simple-xml-element.cwola.jp/baz');
+    xmlElement.$xpath('/baz:Foo/baz:Bar/text()');  // Bar Text
     ```
 
 - **@TODO**

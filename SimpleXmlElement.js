@@ -135,10 +135,12 @@
     }
 
     /**
-     * @param {string} data -
-     * @param {boolean?} dataIsUrl - default : false
+     * Load xml string and return SimpleXmlElementNode instance.
      *
-     * @return {Promise<SimpleXmlElementNode>}
+     * @param {string} data - A well-formed XML string or the path or URL to an XML document if dataIsURL is true.
+     * @param {boolean?} dataIsUrl - By default, dataIsURL is false. Use true to specify that data is a path or URL to an XML document instead of string data.
+     *
+     * @return {Promise<SimpleXmlElementNode>} SimpleXmlElementNode instance.
      */
     async function loadSimpleXmlElement(data, dataIsUrl = false) {
         if (dataIsUrl) {
@@ -238,9 +240,9 @@
         /**
          * Adds an attribute to the SimpleXmlElementNode element.
          *
-         * @param {string} qualifiedName -
-         * @param {string} value -
-         * @param {string?} namespace - default : null
+         * @param {string} qualifiedName - The name of the attribute to add.
+         * @param {string} value - The value of the attribute.
+         * @param {string?} namespace - If specified, the namespace to which the attribute belongs.
          *
          * @return {this}
          */
@@ -256,13 +258,13 @@
         }
 
         /**
-         * Adds a child element to the XML node.
+         * Adds a child element to the SimpleXmlElementNode element.
          *
-         * @param {string} qualifiedName -
-         * @param {string?} value - default : null
-         * @param {string?} namespace - default : null
+         * @param {string} qualifiedName - The name of the child element to add.
+         * @param {string?} value - If specified, the value of the child element.
+         * @param {string?} namespace - If specified, the namespace to which the child element belongs.
          *
-         * @return {SimpleXmlElementNode|null}
+         * @return {SimpleXmlElementNode|null} SimpleXmlElementNode instance representing the child added to the XML node on success; null on failure.
          */
         $addChild(qualifiedName, value = null, namespace = null) {
             check(this);
@@ -284,23 +286,9 @@
         }
 
         /**
-         * Add namespace.
+         * Return a XML string based on SimpleXmlElementNode element.
          *
-         * @param {string} prefix -
-         * @param {string} namespace -
-         *
-         * @return {this}
-         */
-        $addNS(prefix, namespace) {
-            check(this);
-            this.$namespaces.set(prefix, namespace);
-            return this;
-        }
-
-        /**
-         * to XML string.
-         *
-         * @return {string}
+         * @return {string} XML string.
          */
         $asXML() {
             check(this);
@@ -308,18 +296,18 @@
         }
 
         /**
-         * Get attributes.
+         * Returns the attributes and values defined within an xml tag.
          *
-         * @param {string?} namespaceOrPrefix - default : null
-         * @param {boolean?} isPrefix - default : false
+         * @param {string?} namespaceOrPrefix - An optional namespace for the retrieved attributes.
+         * @param {boolean?} isPrefix - If isPrefix is true, namespaceOrPrefix will be regarded as a prefix. If false, namespaceOrPrefix will be regarded as a namespace URL.
          *
-         * @return {SimpleXmlElementAttribute[]}
+         * @return {SimpleXmlElementAttribute[]} Returns an array of SimpleXmlElementAttribute instances.
          */
         $attributes(namespaceOrPrefix = null, isPrefix = false) {
             check(this);
             const simpleXmlElementAttributes = [];
             const filterNamespace = isValidString(namespaceOrPrefix);
-            const attributes = this.$elm.attributes;
+            const attributes = this.$elm.attributes || [];
 
             for (let i = 0, len = attributes.length; i < len; i++) {
                 const attribute = attributes[i];
@@ -337,12 +325,12 @@
         }
 
         /**
-         * Get children.
+         * Returns the children of an element.
          *
-         * @param {string?} namespaceOrPrefix - default : null
-         * @param {boolean?} isPrefix - default : false
+         * @param {string?} namespaceOrPrefix - An optional namespace for the retrieved elements.
+         * @param {boolean?} isPrefix - If isPrefix is true, namespaceOrPrefix will be regarded as a prefix. If false, namespaceOrPrefix will be regarded as a namespace URL.
          *
-         * @return {SimpleXmlElementNode[]}
+         * @return {SimpleXmlElementNode[]} Returns an array of SimpleXmlElementNode instances.
          */
         $children(namespaceOrPrefix = null, isPrefix = false) {
             check(this);
@@ -374,11 +362,11 @@
         }
 
         /**
-         * Count child node.
+         * Counts the children of an element.
          *
-         * @return {number}
+         * @return {number} Returns the number of elements of an element.
          */
-        $count() {
+        $countChildren() {
             check(this);
             return this.$elm.childElementCount;
         }
@@ -470,6 +458,21 @@
         }
 
         /**
+         * Registers a namespace to be passed to the nsResolver closure used in the $xpath method.  
+         * Note that namespaces are not set for XML Nodes.
+         *
+         * @param {string} prefix - The prefix of the namespace to add.
+         * @param {string} namespace - The namespace URI of the namespace to add.
+         *
+         * @return {this}
+         */
+        $registerNS(prefix, namespace) {
+            check(this);
+            this.$namespaces.set(prefix, namespace);
+            return this;
+        }
+
+        /**
          * Remove.
          *
          * @return {void}
@@ -499,19 +502,6 @@
         }
 
         /**
-         * Remove namespace.
-         *
-         * @param {string} prefix -
-         *
-         * @return {this}
-         */
-        $removeNS(prefix) {
-            check(this);
-            this.$namespaces.delete(prefix);
-            return this;
-        }
-
-        /**
          * to string.
          *
          * @return {string}
@@ -519,6 +509,19 @@
         $text() {
             check(this);
             return this.$elm.innerHTML;
+        }
+
+        /**
+         * Unregister namespace.
+         *
+         * @param {string} prefix -
+         *
+         * @return {this}
+         */
+        $unregisterNS(prefix) {
+            check(this);
+            this.$namespaces.delete(prefix);
+            return this;
         }
 
         /**

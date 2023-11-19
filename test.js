@@ -1,6 +1,5 @@
 
 (async (_g) => {
-
 const xml = `<Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
 <Control>
 <constructor>constructor</constructor>
@@ -75,12 +74,12 @@ console.log(xmlElement.Report.Control.hasOwnProperty instanceof SimpleXmlElement
 // 既定の名前空間を使用している場合（タグ名に明示的に名前空間を指定せず
 //   <Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
 //  のように、一括で名前空間を指定している場合）
-// に$xpathメソッドを使用する場合は、$addNSメソッドを使用してあらかじめ名前空間を設定しておく必要があります。
+// に$xpathメソッドを使用する場合は、$registerNSメソッドを使用してあらかじめ名前空間を設定しておく必要があります。
 //
-xmlElement.$addNS('jmx', 'http://xml.kishou.go.jp/jmaxml1/')
-        .$addNS('jmx_ib', 'http://xml.kishou.go.jp/jmaxml1/informationBasis1/')
-        .$addNS('jmx_b', 'http://xml.kishou.go.jp/jmaxml1/body/seismology1/')
-        .$addNS('jmx_eb', 'http://xml.kishou.go.jp/jmaxml1/elementBasis1/');
+xmlElement.$registerNS('jmx', 'http://xml.kishou.go.jp/jmaxml1/')
+        .$registerNS('jmx_ib', 'http://xml.kishou.go.jp/jmaxml1/informationBasis1/')
+        .$registerNS('jmx_b', 'http://xml.kishou.go.jp/jmaxml1/body/seismology1/')
+        .$registerNS('jmx_eb', 'http://xml.kishou.go.jp/jmaxml1/elementBasis1/');
 console.log(xmlElement.$xpath('/jmx:Report'));
 console.log(xmlElement.$xpath('/jmx:Report/jmx_b:Body/jmx_b:Intensity/jmx_b:Observation/jmx_b:CodeDefine/jmx_b:Type[@xpath=\'Pref/Code\']/text()'));
 console.log(xmlElement.Report.Body.Intensity.Observation.$xpath('jmx_b:CodeDefine/jmx_b:Type'));

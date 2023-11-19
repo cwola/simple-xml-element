@@ -20,3 +20,15 @@
     | Type | Description |
     |:---:|---|
     | Promise\<SimpleXmlElementNode\> | SimpleXmlElementNode instance. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    xmlElement instanceof SimpleXmlElementNode;
+    // TRUE
+    ```
