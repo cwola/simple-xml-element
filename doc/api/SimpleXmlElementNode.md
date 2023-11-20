@@ -229,6 +229,34 @@
     // 4
     ```
 
+- **$document**
+  ***
+  - Description
+
+    Returns the owner document of an element.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | SimpleXmlElement | Returns the owner document of an element. |
+
+  - example
+    ```
+    const xmlElement = await loadSimpleXmlElement(
+        `<Foo>
+            <Bar>
+                <Baz>
+                    <Qux>qux</Qux>
+                </Baz>
+            </Bar>
+        </Foo>`
+    );
+
+    console.log(xmlElement.Foo.Bar.$document() === xmlElement);
+    // true
+    ```
+
 - **$getXPath**
   ***
   - Description

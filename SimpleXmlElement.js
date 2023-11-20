@@ -269,10 +269,7 @@
         $addChild(qualifiedName, value = null, namespace = null) {
             check(this);
             let element = null,
-                xmlDoc = this.$elm;
-            if (!(xmlDoc instanceof XMLDocument)) {
-                xmlDoc = xmlDoc.ownerDocument;
-            }
+                xmlDoc = this.$document().$elm;
             if (isValidString(namespace)) {
                 element = xmlDoc.createElementNS(namespace, qualifiedName);
             } else {
@@ -388,6 +385,16 @@
         }
 
         /**
+         * Returns the owner document of an element.
+         *
+         * @return {SimpleXmlElement} Returns the owner document of an element.
+         */
+        $document() {
+            check(this);
+            return (this.$elm instanceof XMLDocument) ? this : this.$documentIndexMap.get(this.$elm.ownerDocument);
+        }
+
+        /**
          * Returns the XPath of an element.
          *
          * @return {string} Returns the XPath of an element.
@@ -398,7 +405,7 @@
             check(this);
             let xpath = '',
                 el = this.$elm,
-                xml = this.$elm.ownerDocument;
+                xml = this.$document().$elm;
             let pos,
                 tempitem2;
 
@@ -496,6 +503,10 @@
         $removeChild(child) {
             check(this);
             const elm = child.$elm;
+            const prev = elm.previousSibling;
+            if (prev !== null && prev.nodeType === Node.TEXT_NODE && prev.nodeValue.trim() === '') {
+                this.$elm.removeChild(prev);
+            }
             this.$elm.removeChild(elm);
             this.$documentIndexMap.delete(elm);
 
@@ -547,9 +558,8 @@
          */
         $xpath(expression, nsResolver = null) {
             check(this);
-            let xmlDoc = this.$elm;
-            if (!(xmlDoc instanceof XMLDocument)) {
-                xmlDoc = xmlDoc.ownerDocument;
+            const xmlDoc = this.$document().$elm;
+            if (!(this.$elm instanceof XMLDocument)) {
                 const xpath = this.$getXPath();
                 if (expression.substring(0, 1) === '/') {
                     expression = xpath + expression;
