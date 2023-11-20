@@ -498,7 +498,19 @@
             const elm = child.$elm;
             this.$elm.removeChild(elm);
             this.$documentIndexMap.delete(elm);
-            delete this.$nodes[elm.localName];
+
+            const nodes = this.$nodes;
+            if (!Array.isArray(nodes[elm.localName]) || nodes[elm.localName].length < 2) {
+                delete nodes[elm.localName];
+            } else {
+                const index = nodes[elm.localName].indexOf(child);
+                if (index >= 0) {
+                    nodes[elm.localName].splice(index, 1);
+                    if (nodes[elm.localName].length === 1) {
+                        nodes[elm.localName] = nodes[elm.localName][0];
+                    }
+                }
+            }
         }
 
         /**
