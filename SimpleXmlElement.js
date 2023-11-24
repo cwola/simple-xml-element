@@ -1,6 +1,63 @@
 ((_g) => {
 
     /**
+     * loilo/magic-methods.js - PHP Magic Methods in JavaScript
+     * @link https://gist.github.com/loilo/4d385d64e2b8552dcc12a0f5126b6df8
+     * @license https://gist.github.com/loilo/3860e53e4aa4010d36a4c08a3da67419
+     */
+    function magicMethods (clazz) {
+        const classHandler = Object.create(null);
+
+        // Trap for class instantiation
+        classHandler.construct = (target, args, receiver) => {
+            // Wrapped class instance
+            const instance = Reflect.construct(target, args, receiver);
+
+            // Instance traps
+            const instanceHandler = Object.create(null);
+    
+            // $__get()
+            // Catches "instance.property"
+            const get = Object.getOwnPropertyDescriptor(clazz.prototype, '$__get')
+            if (get) {
+                instanceHandler.get = (target, name, receiver) => {
+                    if (name.substring(0, 1) === '$') {
+                        return Reflect.get(target, name, receiver);
+                    } else {
+                        return get.value.call(target, name);
+                    }
+                }
+            }
+        
+            // $__set()
+            // Catches "instance.property = ..."
+            const set = Object.getOwnPropertyDescriptor(clazz.prototype, '$__set')
+            if (set) {
+                instanceHandler.set = (target, name, value, receiver) => {
+                    if (Object.hasOwn(target, name)) {
+                        return Reflect.set(target, name, value, receiver);
+                    } else {
+                        return target.$__set.call(target, name, value);
+                    }
+                }
+            }
+        
+            // $__unset()
+            // Catches "delete instance.property"
+            const unset = Object.getOwnPropertyDescriptor(clazz.prototype, '$__unset')
+            if (unset) {
+                instanceHandler.deleteProperty = (target, name) => {
+                    return unset.value.call(target, name);
+                }
+            }
+
+            return new Proxy(instance, instanceHandler);
+        }
+
+        return new Proxy(clazz, classHandler)
+    }
+
+    /**
      * typeof value === 'string' && value !== ''
      *
      * @param {any} value -
@@ -62,26 +119,28 @@
         const nodes = [];
         for (let i = 0, len = elements.length; i < len; i++) {
             const element = elements[i];
-            const node = new SimpleXmlElementNode(element, obj.$documentIndexMap, obj.$namespaces);
+            const node = createSimpleXmlElementNode(element, obj.$documentIndexMap, obj.$namespaces);
             nodes[nodes.length] = node;
 
-            if (obj[element.localName] && Object.hasOwn(obj, element.localName)) {
-                if (obj[element.localName] instanceof SimpleXmlElementNode) {
-                    obj[element.localName] = [obj[element.localName]];
+            if (obj.$nodes[element.localName] && Object.hasOwn(obj.$nodes, element.localName)) {
+                if (obj.$nodes[element.localName] instanceof SimpleXmlElementNode) {
+                    obj.$nodes[element.localName] = [obj.$nodes[element.localName]];
                 }
-                obj[element.localName].push(node);
+                obj.$nodes[element.localName].push(node);
             } else {
-                obj[element.localName] = node;
+                obj.$nodes[element.localName] = node;
             }
         }
         return nodes;
     }
 
     /**
-     * @param {string} data -
-     * @param {boolean?} dataIsUrl - default : false
+     * Load xml string and return SimpleXmlElementNode instance.
      *
-     * @return {Promise<SimpleXmlElementNode>}
+     * @param {string} data - A well-formed XML string or the path or URL to an XML document if dataIsURL is true.
+     * @param {boolean?} dataIsUrl - By default, dataIsURL is false. Use true to specify that data is a path or URL to an XML document instead of string data.
+     *
+     * @return {Promise<SimpleXmlElementNode>} SimpleXmlElementNode instance.
      */
     async function loadSimpleXmlElement(data, dataIsUrl = false) {
         if (dataIsUrl) {
@@ -92,7 +151,13 @@
         if (!(data instanceof XMLDocument) || data.childElementCount !== 1) {
             throw new Error('data is not xml string.');
         }
-        return new SimpleXmlElementNode(data, new WeakMap, new Map);
+        return createSimpleXmlElementNode(data, new WeakMap, new Map);
+    }
+
+    function createSimpleXmlElementNode(elm, documentIndexMap, namespaces) {
+        const simpleXmlElementNode = new SimpleXmlElementNode(elm, documentIndexMap, namespaces);
+        simpleXmlElementNode.$init();
+        return simpleXmlElementNode;
     }
 
     class SimpleXmlElement {
@@ -108,41 +173,81 @@
         }
     }
 
-    class SimpleXmlElementNode extends SimpleXmlElement {
+    const READY_STATE = {
+        PENDING: 'pending',
+        INITIALIZATION: 'initialization',
+        COMPLETE: 'complete'
+    };
+    function check(simpleXmlElementNode) {
+        if (simpleXmlElementNode.$readyState !== READY_STATE.COMPLETE) {
+            throw new Error('This instance has not yet been initialized.');
+        }
+    }
+    const SimpleXmlElementNode = magicMethods(class SimpleXmlElementNode extends SimpleXmlElement {
+        $nodes;
         $documentIndexMap;
         $namespaces;
+        $readyState = READY_STATE.PENDING;
+
+        $__get(name) {
+            return this.$nodes[name];
+        }
+
+        $__set(name, value) {
+            throw new SyntaxError('TREE cannot be added directly. Use $addChild().');
+        }
+
+        $__unset(name) {
+            this.$nodes[name].$remove();
+            return true;
+        }
 
         /**
          * @constructor
          *
          * @param {Element} elm -
          * @param {WeakMap} documentIndexMap -
-         * @param {WeakMap} namespaces -
+         * @param {Map} namespaces -
          */
         constructor(elm, documentIndexMap, namespaces) {
             super(elm);
-            if (documentIndexMap.has(elm)) {
-                throw new Error('Only one element on document allowed.');
-            }
+            this.$nodes = {};
             this.$documentIndexMap = documentIndexMap;
-            documentIndexMap.set(elm, this);
             this.$namespaces = namespaces;
-            if (isValidString(elm.prefix)) {
-                namespaces.set(elm.prefix, elm.namespaceURI);
-            }
-            appendElements(this, elm.children);
         }
 
         /**
-         * Add attribute.
+         * Initialize.
          *
-         * @param {string} qualifiedName -
-         * @param {string} value -
-         * @param {string?} namespace - default : null
+         * @return {void}
+         */
+        $init() {
+            const elm = this.$elm;
+            if (this.$readyState !== READY_STATE.PENDING) {
+                throw new Error('This instance has already been initialized.');
+            } else if (this.$documentIndexMap.has(elm)) {
+                throw new Error('Only one element on document allowed.');
+            }
+            this.$readyState = READY_STATE.INITIALIZATION;
+            this.$documentIndexMap.set(elm, this);
+            if (isValidString(elm.prefix)) {
+                this.$namespaces.set(elm.prefix, elm.namespaceURI);
+            }
+            appendElements(this, elm.children);
+            this.$readyState = READY_STATE.COMPLETE;
+        }
+
+        /**
+         * Adds an attribute to the element.
+         *
+         * @param {string} qualifiedName - The name of the attribute to add.
+         * @param {string} value - The value of the attribute.
+         * @param {string?} namespace - If specified, the namespace to which the attribute belongs.
          *
          * @return {this}
          */
         $addAttribute(qualifiedName, value, namespace = null) {
+            check(this);
             if (isValidString(namespace)) {
                 this.$namespaces.set(qualifiedName.split(':')[0], namespace);
                 this.$elm.setAttributeNS(namespace, qualifiedName, value);
@@ -153,20 +258,22 @@
         }
 
         /**
-         * Add child element.
+         * Adds a child element to the element.
          *
-         * @param {string} qualifiedName -
-         * @param {string?} value - default : null
-         * @param {string?} namespace - default : null
+         * @param {string} qualifiedName - The name of the child element to add.
+         * @param {string?} value - If specified, the value of the child element.
+         * @param {string?} namespace - If specified, the namespace to which the child element belongs.
          *
-         * @return {SimpleXmlElementNode}
+         * @return {SimpleXmlElementNode|null} SimpleXmlElementNode instance representing the child added to the XML node on success; null on failure.
          */
         $addChild(qualifiedName, value = null, namespace = null) {
-            let element = null;
+            check(this);
+            let element = null,
+                xmlDoc = this.$document().$elm;
             if (isValidString(namespace)) {
-                element = XMLDocument.createElementNS(namespace, qualifiedName);
+                element = xmlDoc.createElementNS(namespace, qualifiedName);
             } else {
-                element = XMLDocument.createElement(qualifiedName);
+                element = xmlDoc.createElement(qualifiedName);
             }
             if (isValidString(value)) {
                 element.innerHTML = value;
@@ -176,39 +283,28 @@
         }
 
         /**
-         * Add namespace.
+         * Return a XML string based on SimpleXmlElementNode element.
          *
-         * @param {string} prefix -
-         * @param {string} namespace -
-         *
-         * @return {this}
-         */
-        $addNS(prefix, namespace) {
-            this.$namespaces.set(prefix, namespace);
-            return this;
-        }
-
-        /**
-         * to XML string.
-         *
-         * @return {string}
+         * @return {string} XML string.
          */
         $asXML() {
+            check(this);
             return (new XMLSerializer()).serializeToString(this.$elm);
         }
 
         /**
-         * Get attributes.
+         * Returns the attributes and values defined within an xml tag.
          *
-         * @param {string?} namespaceOrPrefix - default : null
-         * @param {boolean?} isPrefix - default : false
+         * @param {string?} namespaceOrPrefix - An optional namespace for the retrieved attributes.
+         * @param {boolean?} isPrefix - If isPrefix is true, namespaceOrPrefix will be regarded as a prefix. If false, namespaceOrPrefix will be regarded as a namespace URL.
          *
-         * @return {SimpleXmlElementAttribute[]}
+         * @return {SimpleXmlElementAttribute[]} Returns an array of SimpleXmlElementAttribute instances.
          */
         $attributes(namespaceOrPrefix = null, isPrefix = false) {
+            check(this);
             const simpleXmlElementAttributes = [];
             const filterNamespace = isValidString(namespaceOrPrefix);
-            const attributes = this.$elm.attributes;
+            const attributes = this.$elm.attributes || [];
 
             for (let i = 0, len = attributes.length; i < len; i++) {
                 const attribute = attributes[i];
@@ -226,25 +322,26 @@
         }
 
         /**
-         * Get children.
+         * Returns the children of an element.
          *
-         * @param {string?} namespaceOrPrefix - default : null
-         * @param {boolean?} isPrefix - default : false
+         * @param {string?} namespaceOrPrefix - An optional namespace for the retrieved elements.
+         * @param {boolean?} isPrefix - If isPrefix is true, namespaceOrPrefix will be regarded as a prefix. If false, namespaceOrPrefix will be regarded as a namespace URL.
          *
-         * @return {SimpleXmlElementNode[]}
+         * @return {SimpleXmlElementNode[]} Returns an array of SimpleXmlElementNode instances.
          */
         $children(namespaceOrPrefix = null, isPrefix = false) {
+            check(this);
             if (!this.$hasChildren()) {
                 return [];
             }
             const simpleXmlElementNodes = [];
             const filterNamespace = isValidString(namespaceOrPrefix);
 
-            for (const key in this) {
-                if (!Object.hasOwn(this, key) || key.substring(0, 1) === '$') {
+            for (const key in this.$nodes) {
+                if (!Object.hasOwn(this.$nodes, key) || key.substring(0, 1) === '$') {
                     continue;
                 }
-                const children = Array.isArray(this[key]) ? this[key] : [this[key]];
+                const children = Array.isArray(this.$nodes[key]) ? this.$nodes[key] : [this.$nodes[key]];
                 for (let i = 0, len = children.length; i < len; i++) {
                     const child = children[i];
                     if (filterNamespace) {
@@ -262,37 +359,56 @@
         }
 
         /**
-         * Count child node.
+         * Counts the children of an element.
          *
-         * @return {number}
+         * @return {number} Returns the number of elements of an element.
          */
-        $count() {
+        $countChildren() {
+            check(this);
             return this.$elm.childElementCount;
         }
 
         /**
-         * Get name.
+         * Returns the depth of an element.
          *
-         * @return {string}
+         * @return {number} Returns the depth of an element. XMLDocument is 0, Root element is 1 ...
          */
-        $getName() {
-            return this.$elm.tagName;
+        $depth() {
+            check(this);
+            let parent = this.$parent(),
+                depth = 0;
+            while (parent) {
+                depth++;
+                parent = parent.$parent();
+            }
+            return depth;
         }
 
         /**
-         * Get XPath.
+         * Returns the owner document of an element.
          *
-         * @return {string}
+         * @return {SimpleXmlElement} Returns the owner document of an element.
+         */
+        $document() {
+            check(this);
+            return (this.$elm instanceof XMLDocument) ? this : this.$documentIndexMap.get(this.$elm.ownerDocument);
+        }
+
+        /**
+         * Returns the XPath of an element.
+         *
+         * @return {string} Returns the XPath of an element.
          *
          * @see https://developer.mozilla.org/en-US/docs/Web/XPath/Snippets
          */
         $getXPath() {
+            check(this);
             let xpath = '',
                 el = this.$elm,
-                xml = this.$elm.ownerDocument;
+                xml = this.$document().$elm;
             let pos,
                 tempitem2;
-          
+
             while (el !== xml.documentElement) {
                 pos = 0;
                 tempitem2 = el;
@@ -303,45 +419,73 @@
                     }
                     tempitem2 = tempitem2.previousSibling;
                 }
-          
-                xpath = `*[name()='${el.nodeName}' and namespace-uri()='${
-                    el.namespaceURI ?? ''
-                }'][${pos}]/${xpath}`;
-          
+
+                xpath = `*[name()='${el.nodeName}'`
+                        + (el.namespaceURI ? ` and namespace-uri()='${el.namespaceURI}'` : '')
+                        + `][${pos}]/${xpath}`;
                 el = el.parentNode;
             }
-            xpath = `/*[name()='${xml.documentElement.nodeName}' and namespace-uri()='${
-                el.namespaceURI ?? ''
-            }']/${xpath}`;
+            xpath = `*[name()='${xml.documentElement.nodeName}'`
+                        + (el.namespaceURI ? ` and namespace-uri()='${el.namespaceURI}'` : '')
+                        + `]/${xpath}`;
             xpath = xpath.replace(/\/$/, '');
             return xpath;
         }
 
         /**
-         * Has children.
+         * Checks whether the current element has sub elements.  
+         * Note that TextNode does not count as a child element.
          *
-         * @return {boolean}
+         * @return {boolean} true if the current element has sub-elements, otherwise false.
          */
         $hasChildren() {
-            return this.$elm.hasChildNodes();
+            check(this);
+            return Object.keys(this.$nodes).length > 0;
         }
 
         /**
-         * Get parent.
+         * Gets the tagName of the element.
          *
-         * @return {SimpleXmlElementNode|SimpleXmlTextNode|null}
+         * @return {string} Returns as a string the name of the XML tag referenced by the SimpleXMLElementNode instance.
+         */
+        $name() {
+            check(this);
+            return this.$elm.tagName;
+        }
+
+        /**
+         * Gets the parent element of this element.
+         *
+         * @return {SimpleXmlElementNode|null} Returns the parent element of this element.
          */
         $parent() {
+            check(this);
             const parent = this.$elm.parentNode;
             return parent === null ? null : this.$documentIndexMap.get(parent);
         }
 
         /**
-         * Remove.
+         * Registers a namespace to be passed to the nsResolver closure used in the $xpath method.  
+         * Note that namespaces are not set for XML Nodes.
          *
-         * @return {void}
+         * @param {string} prefix - The prefix of the namespace to register.
+         * @param {string} namespace - The namespace URI of the namespace to register.
+         *
+         * @return {this}
+         */
+        $registerNS(prefix, namespace) {
+            check(this);
+            this.$namespaces.set(prefix, namespace);
+            return this;
+        }
+
+        /**
+         * Remove this element from the parent element.
+         *
+         * @return {void} No value is returned.
          */
         $remove() {
+            check(this);
             const parent = this.$parent();
             if (parent === null || parent instanceof SimpleXmlTextNode) {
                 throw new Error('this element is not deletable.');
@@ -350,52 +494,72 @@
         }
 
         /**
-         * Remove child.
+         * Remove child element from this element.
          *
-         * @param {SimpleXmlElementNode|SimpleXmlTextNode} child -
+         * @param {SimpleXmlElementNode} child - A SimpleXmlElementNode that is the child element to be removed from this element.
          *
-         * @return {void}
+         * @return {void} No value is returned.
          */
         $removeChild(child) {
+            check(this);
             const elm = child.$elm;
+            const prev = elm.previousSibling;
+            if (prev !== null && prev.nodeType === Node.TEXT_NODE && prev.nodeValue.trim() === '') {
+                this.$elm.removeChild(prev);
+            }
             this.$elm.removeChild(elm);
             this.$documentIndexMap.delete(elm);
-            delete this[elm.localName];
+
+            const nodes = this.$nodes;
+            if (!Array.isArray(nodes[elm.localName]) || nodes[elm.localName].length < 2) {
+                delete nodes[elm.localName];
+            } else {
+                const index = nodes[elm.localName].indexOf(child);
+                if (index >= 0) {
+                    nodes[elm.localName].splice(index, 1);
+                    if (nodes[elm.localName].length === 1) {
+                        nodes[elm.localName] = nodes[elm.localName][0];
+                    }
+                }
+            }
         }
 
         /**
-         * Remove namespace.
+         * Returns the innerHTML property of an element.
          *
-         * @param {string} prefix -
+         * @return {string} Returns the innerHTML property of an element.
+         */
+        $text() {
+            check(this);
+            return this.$elm.innerHTML;
+        }
+
+        /**
+         * Unregisters a namespace to be passed to the nsResolver closure used in the $xpath method.  
+         * Note that namespaces are not unset for XML Nodes.
+         *
+         * @param {string} prefix - The prefix of the namespace to unregister.
          *
          * @return {this}
          */
-        $removeNS(prefix) {
+        $unregisterNS(prefix) {
+            check(this);
             this.$namespaces.delete(prefix);
             return this;
         }
 
         /**
-         * to string.
+         * Runs XPath query on XML data.
          *
-         * @return {string}
-         */
-        $text() {
-            return this.$elm.innerHTML;
-        }
-
-        /**
-         * xpath.
+         * @param {string} expression - An XPath path.
+         * @param {Function?} nsResolver - A function that will be passed any namespace prefixes and should return a string representing the namespace URI associated with that prefix.
          *
-         * @param {string} expression -
-         * @param {Function?} nsResolver - default : null
-         *
-         * @return {Array<SimpleXmlElementNode|SimpleXmlTextNode>|number|string|boolean}
+         * @return {SimpleXmlElement[]|number|string|boolean} Returns an array of SimpleXmlElement instances, number, string or boolean.
          */
         $xpath(expression, nsResolver = null) {
-            let xmlDoc = this.$elm;
-            if (!(xmlDoc instanceof XMLDocument)) {
-                xmlDoc = xmlDoc.ownerDocument;
+            check(this);
+            const xmlDoc = this.$document().$elm;
+            if (!(this.$elm instanceof XMLDocument)) {
                 const xpath = this.$getXPath();
                 if (expression.substring(0, 1) === '/') {
                     expression = xpath + expression;
@@ -437,9 +601,10 @@
             } catch (e) {
                 throw new Error('Document tree modified during iteration ' + e);
             }
-            return (simpleXmlElementNodes.length === 1 && simpleXmlElementNodes[0] instanceof Text) ? simpleXmlElementNodes[0].$text() : simpleXmlElementNodes;
+            return (simpleXmlElementNodes.length === 1 && simpleXmlElementNodes[0] instanceof SimpleXmlTextNode)
+                    ? simpleXmlElementNodes[0].$text() : simpleXmlElementNodes;
         }
-    }
+    });
 
     class SimpleXmlTextNode extends SimpleXmlElement {
         /**
@@ -452,9 +617,9 @@
         }
 
         /**
-         * to string.
+         * Returns the nodeValue property of a TextNode.
          *
-         * @return {string}
+         * @return {string} Returns the nodeValue property of a TextNode.
          */
         $text() {
             return this.$elm.nodeValue;
@@ -462,7 +627,7 @@
     }
 
     class SimpleXmlElementAttribute {
-        attribute;
+        $attribute;
 
         /**
          * @constructor
@@ -470,69 +635,69 @@
          * @param {Attr} attribute -
          */
         constructor(attribute) {
-            this.attribute = attribute;
+            this.$attribute = attribute;
         }
 
         /**
-         * Get LocalName.
+         * Returns the localName property of an Attribute.
          *
-         * @return {string}
+         * @return {string} Returns the localName property of an Attribute.
          */
-        $getLocalName() {
-            return this.attribute.localName;
+        $localName() {
+            return this.$attribute.localName;
         }
 
         /**
-         * Get Name.
+         * Returns the name property of an Attribute.
          *
-         * @return {string}
+         * @return {string} Returns the name property of an Attribute.
          */
-        $getName() {
-            return this.attribute.name;
+        $name() {
+            return this.$attribute.name;
         }
 
         /**
-         * Get NamespaceURI.
+         * Returns the namespaceURI property of an Attribute.
          *
-         * @return {string|null}
+         * @return {string|null} Returns the namespaceURI property of an Attribute.
          */
-        $getNamespaceURI() {
-            return this.attribute.namespaceURI;
+        $namespaceURI() {
+            return this.$attribute.namespaceURI;
         }
 
         /**
-         * Get prefix.
+         * Returns the prefix property of an Attribute.
          *
-         * @return {string|null}
+         * @return {string|null} Returns the prefix property of an Attribute.
          */
-        $getPrefix() {
-            return this.attribute.prefix;
+        $prefix() {
+            return this.$attribute.prefix;
         }
 
         /**
-         * Get value.
+         * Returns the value property of an Attribute.
          *
-         * @return {string}
+         * @return {string} Returns the value property of an Attribute.
          */
         $getValue() {
-            return this.attribute.value;
+            return this.$attribute.value;
         }
 
         /**
-         * Set value.
+         * Sets the value property of an Attribute.
          *
-         * @param {string} value -
+         * @param {string} value - Attribute value.
          *
-         * @return {void}
+         * @return {void} No value is returned.
          */
         $setValue(value) {
-            this.attribute.value = value;
+            this.$attribute.value = value;
         }
 
         /**
-         * to string.
+         * Alias of $getValue().
          *
-         * @return {string}
+         * @return {string} Returns the value property of an Attribute.
          */
         $text() {
             return this.$getValue();
@@ -540,5 +705,25 @@
     }
 
     _g.loadSimpleXmlElement = loadSimpleXmlElement;
+    _g.SimpleXmlElement = new Proxy(SimpleXmlElement, {
+        construct(target, args, receiver) {
+            throw new TypeError('Illegal constructor.');
+        }
+    });
+    _g.SimpleXmlElementNode = new Proxy(SimpleXmlElementNode, {
+        construct(target, args, receiver) {
+            throw new TypeError('Illegal constructor.');
+        }
+    });
+    _g.SimpleXmlTextNode = new Proxy(SimpleXmlTextNode, {
+        construct(target, args, receiver) {
+            throw new TypeError('Illegal constructor.');
+        }
+    });
+    _g.SimpleXmlElementAttribute = new Proxy(SimpleXmlElementAttribute, {
+        construct(target, args, receiver) {
+            throw new TypeError('Illegal constructor.');
+        }
+    });
 
 })(window);
