@@ -69,37 +69,6 @@
     }
 
     /**
-     * @param {string} data -
-     *
-     * @return {XMLDocument}
-     */
-    function loadXml(data) {
-        if (!isValidString(data)) {
-            throw new TypeError('data is not xml string.');
-        }
-        return (new DOMParser()).parseFromString(data, 'text/xml');
-    }
-
-    /**
-     * @param {string} data -
-     *
-     * @return {Promise<XMLDocument>}
-     */
-    async function loadXmlByUrl(data) {
-        data = await fetch(data)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(response.status + ' ' + response.statusText);
-                        }
-                        return response.body;
-                    })
-                    .catch(reason => {
-                        throw new Error(reason);
-                    });
-        return loadXml(data);
-    }
-
-    /**
      * append element to object.
      *
      * @param {object} obj -
@@ -137,21 +106,43 @@
     /**
      * Load xml string and return SimpleXmlElementNode instance.
      *
-     * @param {string} data - A well-formed XML string or the path or URL to an XML document if dataIsURL is true.
-     * @param {boolean?} dataIsUrl - By default, dataIsURL is false. Use true to specify that data is a path or URL to an XML document instead of string data.
+     * @param {string} data - A well-formed XML string.
+     *
+     * @return {SimpleXmlElementNode} SimpleXmlElementNode instance.
+     */
+    function simpleXmlLoadString(data) {
+        if (!isValidString(data)) {
+            throw new TypeError('data is not xml string.');
+        }
+        const xml = (new DOMParser()).parseFromString(data, 'text/xml');
+        if (!(xml instanceof XMLDocument) || xml.childElementCount !== 1) {
+            throw new Error('data is not xml string.');
+        }
+        return createSimpleXmlElementNode(xml, new WeakMap, new Map);
+    }
+
+    /**
+     * Load URL and return SimpleXmlElementNode instance.
+     *
+     * @param {string} url - The path or URL to an XML document.
      *
      * @return {Promise<SimpleXmlElementNode>} SimpleXmlElementNode instance.
      */
-    async function loadSimpleXmlElement(data, dataIsUrl = false) {
-        if (dataIsUrl) {
-            data = await loadXmlByUrl(data);
-        } else {
-            data = loadXml(data);
+    async function simpleXmlLoadUrl(url) {
+        if (!isValidString(url)) {
+            throw new TypeError('argument is not url.');
         }
-        if (!(data instanceof XMLDocument) || data.childElementCount !== 1) {
-            throw new Error('data is not xml string.');
-        }
-        return createSimpleXmlElementNode(data, new WeakMap, new Map);
+        const xml = await fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(response.status + ' ' + response.statusText);
+                        }
+                        return response.body;
+                    })
+                    .catch(reason => {
+                        throw new Error(reason);
+                    });
+        return simpleXmlLoadString(xml);
     }
 
     function createSimpleXmlElementNode(elm, documentIndexMap, namespaces) {
@@ -704,7 +695,8 @@
         }
     }
 
-    _g.loadSimpleXmlElement = loadSimpleXmlElement;
+    _g.simpleXmlLoadString = simpleXmlLoadString;
+    _g.simpleXmlLoadUrl = simpleXmlLoadUrl;
     _g.SimpleXmlElement = new Proxy(SimpleXmlElement, {
         construct(target, args, receiver) {
             throw new TypeError('Illegal constructor.');
