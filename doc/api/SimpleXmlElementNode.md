@@ -28,7 +28,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text</Bar>
         </Foo>`
@@ -63,7 +63,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text</Bar>
         </Foo>`
@@ -91,7 +91,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text</Bar>
         </Foo>`
@@ -124,7 +124,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar id="2023-cwola" class="item" data-depth="1">Bar Text</Bar>
         </Foo>`
@@ -159,7 +159,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text1</Bar>
             <Bar>Bar Text2</Bar>
@@ -189,7 +189,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text1</Bar>
             <Bar>Bar Text2</Bar>
@@ -215,7 +215,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>
                 <Baz>
@@ -243,7 +243,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>
                 <Baz>
@@ -271,7 +271,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>
                 <Baz>
@@ -306,7 +306,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text</Bar>
         </Foo>`
@@ -330,7 +330,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text</Bar>
         </Foo>`
@@ -354,7 +354,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text</Bar>
         </Foo>`
@@ -386,7 +386,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo xmlns="http://simple-xml-element.cwola.jp/baz">
             <Bar>Bar Text</Bar>
         </Foo>`
@@ -411,7 +411,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text</Bar>
         </Foo>`
@@ -443,7 +443,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text</Bar>
         </Foo>`
@@ -469,7 +469,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo>
             <Bar>Bar Text</Bar>
         </Foo>`
@@ -519,7 +519,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
+    const xmlElement = simpleXmlLoadString(
         `<Foo xmlns="http://simple-xml-element.cwola.jp/baz">
             <Bar>Bar Text</Bar>
         </Foo>`

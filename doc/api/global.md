@@ -2,7 +2,7 @@
 
 #### Function
 
-- **loadSimpleXmlElement**
+- **simpleXmlLoadString**
   ***
   - Description
 
@@ -12,8 +12,37 @@
 
     | Name | Type | Description |
     |---|:---:|---|
-    | data | string | A well-formed XML string or the path or URL to an XML document if dataIsURL is true. |
-    | dataIsUrl | boolean? | By default, dataIsURL is false. Use true to specify that data is a path or URL to an XML document instead of string data. |
+    | data | string | A well-formed XML string. |
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | SimpleXmlElementNode | SimpleXmlElementNode instance. |
+
+  - example
+    ```
+    const xmlElement = simpleXmlLoadString(
+        `<Foo>
+            <Bar>Bar Text</Bar>
+        </Foo>`
+    );
+
+    xmlElement instanceof SimpleXmlElementNode;
+    // true
+    ```
+
+- **simpleXmlLoadUrl**
+  ***
+  - Description
+
+    Load URL and return [SimpleXmlElementNode](./SimpleXmlElementNode.md) instance.
+
+  - Arguments
+
+    | Name | Type | Description |
+    |---|:---:|---|
+    | url | string | The path or URL to an XML document. |
 
   - Return
 
@@ -23,11 +52,7 @@
 
   - example
     ```
-    const xmlElement = await loadSimpleXmlElement(
-        `<Foo>
-            <Bar>Bar Text</Bar>
-        </Foo>`
-    );
+    const xmlElement = await simpleXmlLoadUrl('https://www.w3schools.com/xml/note.xml');
 
     xmlElement instanceof SimpleXmlElementNode;
     // true

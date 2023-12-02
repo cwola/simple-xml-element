@@ -84,7 +84,7 @@ const xml = `<Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://
 </Body>
 </Report>`;
 
-const xmlElement = await _g.loadSimpleXmlElement(xml);
+const xmlElement = simpleXmlLoadString(xml);
 
 // 震源・震度に関する情報
 console.log(xmlElement.Report.Control.Title.$text());
