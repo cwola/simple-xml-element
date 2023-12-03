@@ -140,6 +140,8 @@ console.log('=== MODIFY TEST ===');
 xmlElement.Report.Body.Comments.$remove();
 // [SimpleXmlElementNode(Earthquake), SimpleXmlElementNode(Intensity)]
 console.log(xmlElement.Report.Body.$children());
+// [SimpleXmlTextNode, SimpleXmlElementNode(Earthquake), SimpleXmlTextNode, SimpleXmlElementNode(Intensity), SimpleXmlTextNode]
+console.log(xmlElement.Report.Body.$childNodes());
 
 delete xmlElement.Report.Body.Intensity.Observation.Pref.Area.City[2].$remove();
 // 0: 八代市 (4320200)

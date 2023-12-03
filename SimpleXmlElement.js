@@ -313,6 +313,32 @@
         }
 
         /**
+         * Returns the children of a node.
+         *
+         * @return {SimpleXmlElement[]} Returns an array of SimpleXmlElement instances.
+         */
+        $childNodes() {
+            check(this);
+            const elm = this.$elm;
+            if (!elm.hasChildNodes()) {
+                return [];
+            }
+            const simpleXmlElementNodes = [];
+
+            for (let i = 0, len = elm.childNodes.length; i < len; i++) {
+                const node = elm.childNodes[i];
+                if (node instanceof Comment) {
+                    simpleXmlElementNodes[simpleXmlElementNodes.length] = new SimpleXmlCommentNode(node);
+                } else if (node instanceof Text) {
+                    simpleXmlElementNodes[simpleXmlElementNodes.length] = new SimpleXmlTextNode(node);
+                } else {
+                    simpleXmlElementNodes[simpleXmlElementNodes.length] = this.$documentIndexMap.get(node);
+                }
+            }
+            return simpleXmlElementNodes;
+        }
+
+        /**
          * Returns the children of an element.
          *
          * @param {string?} namespaceOrPrefix - An optional namespace for the retrieved elements.
@@ -356,7 +382,7 @@
          */
         $countChildren() {
             check(this);
-            return this.$elm.childElementCount;
+            return Object.keys(this.$nodes).length;
         }
 
         /**
@@ -431,7 +457,7 @@
          */
         $hasChildren() {
             check(this);
-            return Object.keys(this.$nodes).length > 0;
+            return this.$countChildren() > 0;
         }
 
         /**
@@ -597,6 +623,26 @@
         }
     });
 
+    class SimpleXmlCommentNode extends SimpleXmlElement {
+        /**
+         * @constructor
+         *
+         * @param {Comment} elm -
+         */
+        constructor(elm) {
+            super(elm);
+        }
+
+        /**
+         * Returns the nodeValue property of a CommectNode.
+         *
+         * @return {string} Returns the nodeValue property of a CommectNode.
+         */
+        $text() {
+            return this.$elm.nodeValue;
+        }
+    }
+
     class SimpleXmlTextNode extends SimpleXmlElement {
         /**
          * @constructor
@@ -703,6 +749,11 @@
         }
     });
     _g.SimpleXmlElementNode = new Proxy(SimpleXmlElementNode, {
+        construct(target, args, receiver) {
+            throw new TypeError('Illegal constructor.');
+        }
+    });
+    _g.SimpleXmlCommentNode = new Proxy(SimpleXmlCommentNode, {
         construct(target, args, receiver) {
             throw new TypeError('Illegal constructor.');
         }

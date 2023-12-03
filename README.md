@@ -56,6 +56,8 @@ console.log(xmlElement.$xpath('/Bookshelf/Book[last()]')[0].$asXML());
 
 - [SimpleXmlElementNode](./doc/api/SimpleXmlElementNode.md)
 
+- [SimpleXmlCommentNode](./doc/api/SimpleXmlCommentNode.md)
+
 - [SimpleXmlTextNode](./doc/api/SimpleXmlTextNode.md)
 
 ## License
