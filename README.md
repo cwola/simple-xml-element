@@ -2,6 +2,18 @@
 
 JavaScript library, like PHP's SimpleXmlElement.
 
+## Include
+
+```
+<script type="text/javascript" src="SimpleXmlElement.js"></script>
+```
+
+or
+
+```
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@cwola/simple-xml-element@${version}/src/SimpleXmlElement.js"></script>
+```
+
 ## Usage
 
 ```

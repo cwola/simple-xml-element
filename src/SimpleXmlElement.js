@@ -240,7 +240,7 @@
         $addAttribute(qualifiedName, value, namespace = null) {
             check(this);
             if (isValidString(namespace)) {
-                this.$namespaces.set(qualifiedName.split(':')[0], namespace);
+                this.$registerNS(qualifiedName.split(':')[0], namespace);
                 this.$elm.setAttributeNS(namespace, qualifiedName, value);
             } else {
                 this.$elm.setAttribute(qualifiedName, value);

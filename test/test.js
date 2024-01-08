@@ -143,7 +143,7 @@ console.log(xmlElement.Report.Body.$children());
 // [SimpleXmlTextNode, SimpleXmlElementNode(Earthquake), SimpleXmlTextNode, SimpleXmlElementNode(Intensity), SimpleXmlTextNode]
 console.log(xmlElement.Report.Body.$childNodes());
 
-delete xmlElement.Report.Body.Intensity.Observation.Pref.Area.City[2].$remove();
+delete xmlElement.Report.Body.Intensity.Observation.Pref.Area.City[2];
 // 0: 八代市 (4320200)
 // 1: 宇城市 (4321300)
 // 2: 甲佐町 (4344400)
@@ -153,9 +153,9 @@ xmlElement.Report.Body.Intensity.Observation.Pref.Area.City.forEach((city, index
 });
 // true
 console.log(Array.isArray(xmlElement.Report.Body.Intensity.Observation.Pref.Area.City));
-delete xmlElement.Report.Body.Intensity.Observation.Pref.Area.City[1].$remove();
-delete xmlElement.Report.Body.Intensity.Observation.Pref.Area.City[1].$remove();
-delete xmlElement.Report.Body.Intensity.Observation.Pref.Area.City[1].$remove();
+delete xmlElement.Report.Body.Intensity.Observation.Pref.Area.City[1];
+delete xmlElement.Report.Body.Intensity.Observation.Pref.Area.City[1];
+delete xmlElement.Report.Body.Intensity.Observation.Pref.Area.City[1];
 // false
 console.log(Array.isArray(xmlElement.Report.Body.Intensity.Observation.Pref.Area.City));
 // true
