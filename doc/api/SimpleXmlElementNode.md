@@ -137,6 +137,40 @@
     // class => item
     // data-depth => 1
     ```
+  
+  - **$childNodes**
+  ***
+  - Description
+
+    Returns the children of a node.
+
+  - Return
+
+    | Type | Description |
+    |:---:|---|
+    | SimpleXmlElement[] | Returns an array of SimpleXmlElement instances. |
+
+  - example
+    ```
+    const xmlElement = simpleXmlLoadString(
+        `<Foo>
+            <Bar>Bar Text1</Bar>
+            <Bar>Bar Text2</Bar>
+            <Bar>Bar Text3</Bar>
+        </Foo>`
+    );
+
+    xmlElement.Foo.$childNodes().forEach((child) => {
+        console.log(child.$text());
+    });
+    // \n(space+)
+    // Bar Text1
+    // \n(space+)
+    // Bar Text2
+    // \n(space+)
+    // Bar Text3
+    // \n(space+)
+    ```
 
 - **$children**
   ***

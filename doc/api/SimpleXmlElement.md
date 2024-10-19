@@ -1,3 +1,3 @@
 ### SimpleXmlElement
 
-Parent class of [SimpleXmlElementNode](./SimpleXmlElementNode.md) and [SimpleXmlTextNode](./SimpleXmlTextNode.md).
+Parent class of [SimpleXmlElementNode](./SimpleXmlElementNode.md), [SimpleXmlCommentNode](./SimpleXmlCommentNode.md) and [SimpleXmlTextNode](./SimpleXmlTextNode.md).

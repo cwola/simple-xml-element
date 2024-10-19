@@ -2,6 +2,18 @@
 
 JavaScript library, like PHP's SimpleXmlElement.
 
+## Include
+
+```
+<script type="text/javascript" src="SimpleXmlElement.js"></script>
+```
+
+or
+
+```
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@cwola/simple-xml-element@${version}/src/SimpleXmlElement.js"></script>
+```
+
 ## Usage
 
 ```
@@ -55,6 +67,8 @@ console.log(xmlElement.$xpath('/Bookshelf/Book[last()]')[0].$asXML());
 - [SimpleXmlElementAttribute](./doc/api/SimpleXmlElementAttribute.md)
 
 - [SimpleXmlElementNode](./doc/api/SimpleXmlElementNode.md)
+
+- [SimpleXmlCommentNode](./doc/api/SimpleXmlCommentNode.md)
 
 - [SimpleXmlTextNode](./doc/api/SimpleXmlTextNode.md)
 
