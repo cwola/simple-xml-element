@@ -1,11 +1,10 @@
 {
   "name": "@cwola/simple-xml-element",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "JavaScript library, like PHP's SimpleXmlElement.",
   "main": "src/SimpleXmlElement",
   "type": "module",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "r-jimbo",
   "keywords": [
     "cwola",
@@ -18,10 +17,8 @@
     "type": "git",
     "url": "git+https://github.com/cwola/simple-xml-element.git"
   },
-  "dependencies": {
-  },
-  "devDependencies": {
-  },
+  "dependencies": {},
+  "devDependencies": {},
   "publishConfig": {
     "access": "public"
   }
