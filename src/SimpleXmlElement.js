@@ -122,6 +122,18 @@
     }
 
     /**
+     * Load DOM and return SimpleXmlElementNode instance.
+     *
+     * @param {Node|Attr} rootNode - The Node to use as the root of the DOM tree or subtree for which to construct an XML representation.
+     *
+     * @return {SimpleXmlElementNode} SimpleXmlElementNode instance.
+     */
+    function simpleXmlLoadDom(rootNode) {
+        const xml = (new XMLSerializer().serializeToString(rootNode));
+        return simpleXmlLoadString(xml);
+    }
+
+    /**
      * Load URL and return SimpleXmlElementNode instance.
      *
      * @param {string} url - The path or URL to an XML document.
@@ -217,7 +229,7 @@
             if (this.$readyState !== READY_STATE.PENDING) {
                 throw new Error('This instance has already been initialized.');
             } else if (this.$documentIndexMap.has(elm)) {
-                throw new Error('Only one element on document allowed.');
+                throw new Error('The same node cannot be inserted in two different places in a document.');
             }
             this.$readyState = READY_STATE.INITIALIZATION;
             this.$documentIndexMap.set(elm, this);
@@ -742,6 +754,7 @@
     }
 
     _g.simpleXmlLoadString = simpleXmlLoadString;
+    _g.simpleXmlLoadDom = simpleXmlLoadDom;
     _g.simpleXmlLoadUrl = simpleXmlLoadUrl;
     _g.SimpleXmlElement = new Proxy(SimpleXmlElement, {
         construct(target, args, receiver) {
